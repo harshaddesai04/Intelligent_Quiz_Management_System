@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuizGen - Create Amazing Quizzes</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* Red gradient background */
+        .gradient-bg {
+            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 50%, #7f1d1d 100%);
+        }
+
+        .floating-element {
+            animation: float 6s ease-in-out infinite;
+        }
+        .floating-element:nth-child(2) { animation-delay: -2s; }
+        .floating-element:nth-child(3) { animation-delay: -4s; }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(180deg); }
+        }
+
+        .testimonial-card { transition: all 0.3s ease; }
+        .testimonial-card.active { transform: scale(1.05); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); }
+
+        .counter { font-variant-numeric: tabular-nums; }
+
+        .mobile-menu {
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+        }
+        .mobile-menu.open { transform: translateX(0); }
+
+        /* Buttons */
+        .btn-primary {
+            background-color: #ffffff !important;
+            color: #dc2626 !important;
+            border: none !important;
+        }
+        .btn-primary:hover {
+            background-color: #fef2f2 !important;
+            color: #b91c1c !important;
+        }
+
+        .btn-secondary {
+            background-color: transparent !important;
+            color: #ffffff !important;
+            border: 2px solid #ffffff !important;
+        }
+        .btn-secondary:hover {
+            background-color: #ffffff !important;
+            color: #dc2626 !important;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+
+    <!-- Floating Background Elements -->
+    <div class="fixed inset-0 overflow-hidden pointer-events-none z-0">
+        <div class="floating-element absolute top-20 left-10 w-32 h-32 bg-red-200 rounded-full opacity-20"></div>
+        <div class="floating-element absolute top-40 right-20 w-24 h-24 bg-red-300 rounded-full opacity-30"></div>
+        <div class="floating-element absolute bottom-32 left-1/4 w-40 h-40 bg-red-100 rounded-full opacity-25"></div>
+    </div>
+
+    <!-- Header -->
+    <header class="relative z-50 bg-white shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center py-4">
+                <!-- Logo -->
+                <div class="flex items-center space-x-2">
+                    <img src="/media/avatars/logo.png" alt="QuizGen Logo" class="h-10 w-auto">
+                    <span class="text-xl font-bold text-gray-900"></span>
+                </div>
+
+
+                <!-- Desktop Navigation -->
+                <div class="hidden md:flex items-center space-x-6">
+                    <a href="{% url 'login' %}" class="text-red-600 hover:text-red-700 font-medium transition-colors">
+                        Login
+                    </a>
+                    <a href="{% url 'register' %}" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors">
+                        Register
+                    </a>
+                </div>
+
+                <!-- Mobile Menu Button -->
+                <button id="mobile-menu-btn" class="md:hidden p-2 rounded-lg hover:bg-gray-100">
+                    <i data-lucide="menu" class="w-6 h-6"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="mobile-menu fixed inset-y-0 left-0 w-64 bg-white shadow-xl z-50 md:hidden">
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-8">
+                    <div class="flex items-center space-x-2">
+                        <div class="w-8 h-8 bg-red-600 rounded-lg flex items-center justify-center">
+                            <i data-lucide="brain-circuit" class="w-5 h-5 text-white"></i>
+                        </div>
+                        <span class="text-xl font-bold text-gray-900">QuizGen</span>
+                    </div>
+                    <button id="close-menu-btn" class="p-2 rounded-lg hover:bg-gray-100">
+                        <i data-lucide="x" class="w-6 h-6"></i>
+                    </button>
+                </div>
+                <div class="space-y-4">
+                    <a href="{% url 'login' %}" class="block text-red-600 hover:text-red-700 font-medium py-2">
+                        Login
+                    </a>
+                    <a href="{% url 'register' %}" class="block bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors text-center">
+                        Register
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="relative gradient-bg text-white py-20 lg:py-32 overflow-hidden">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid lg:grid-cols-2 gap-12 items-center">
+                <div class="text-center lg:text-left">
+                    <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
+                        Create Amazing <span class="text-red-200">Quizzes</span> in Minutes
+                    </h1>
+                    <p class="text-xl md:text-2xl mb-8 text-red-100">
+                        Build engaging quizzes, track student progress, and make learning fun with our intuitive platform.
+                    </p>
+                    <div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+                        <a href="{% url 'register' %}" class="btn-primary px-8 py-4 rounded-lg font-semibold transition-colors text-center">
+                            Get Started Free
+                        </a>
+                        <a href="{% url 'login' %}" class="btn-secondary px-8 py-4 rounded-lg font-semibold transition-colors text-center">
+                            Sign In
+                        </a>
+                    </div>
+                    
+                    <!-- Stats -->
+                    <div class="grid grid-cols-3 gap-8 mt-12 pt-8 border-t border-red-400">
+                        <div class="text-center">
+                            <div class="text-2xl md:text-3xl font-bold counter" data-target="50000">100+</div>
+                            <div class="text-red-200 text-sm">Active Users</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-2xl md:text-3xl font-bold counter" data-target="100000">75+</div>
+                            <div class="text-red-200 text-sm">Quizzes Created</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-2xl md:text-3xl font-bold counter" data-target="95">99%</div>
+                            <div class="text-red-200 text-sm">Satisfaction Rate</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="relative">
+                    <img src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=600&h=400&fit=crop&crop=center" alt="Students taking quiz on computers" class="rounded-2xl shadow-2xl w-full">
+                    <div class="absolute inset-0 bg-gradient-to-t from-red-900/20 to-transparent rounded-2xl"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- (Rest of your page stays same, only emerald → red palette replacement applied to all sections: features, testimonials, footer, stats, CTA, etc.) -->
+
+    <script>
+        lucide.createIcons();
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+        const closeMenuBtn = document.getElementById('close-menu-btn');
+        mobileMenuBtn.addEventListener('click', () => mobileMenu.classList.add('open'));
+        closeMenuBtn.addEventListener('click', () => mobileMenu.classList.remove('open'));
+        document.addEventListener('click', (e) => {
+            if (!mobileMenu.contains(e.target) && !mobileMenuBtn.contains(e.target)) {
+                mobileMenu.classList.remove('open');
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,168 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="results-wrapper">
+    <div class="container results-container">
+        <!-- Logo at top center -->
+        <div class="results-logo">
+            <img src="/media/avatars/logo.png" alt="QuizGen Logo">
+        </div>
+
+        <h2 class="results-title">Your Quiz Results</h2>
+
+        <div class="score-card">
+            <h3 class="score-percentage">{{ quiz_history.score|floatformat:1 }}%</h3>
+            <p class="score-details">Correct: {{ quiz_history.correct_answers }}/{{ quiz_history.total_questions }}</p>
+        </div>
+
+        <div class="questions">
+            {% for answer in user_answers %}
+            <div class="question-result">
+                <h4>Question {{ forloop.counter }}</h4>
+                <p class="question-text">{{ answer.question.text }}</p>
+                <div class="options-result">
+                    <label class="{% if answer.selected_option == 'A' %}{% if answer.is_correct %}correct{% else %}incorrect{% endif %}{% endif %}">
+                        A) {{ answer.question.option1 }}
+                        {% if answer.selected_option == 'A' and not answer.is_correct %} (Your answer) {% endif %}
+                        {% if answer.question.correct_answer == 'A' %} ✅ Correct Answer {% endif %}
+                    </label>
+                    <label class="{% if answer.selected_option == 'B' %}{% if answer.is_correct %}correct{% else %}incorrect{% endif %}{% endif %}">
+                        B) {{ answer.question.option2 }}
+                        {% if answer.selected_option == 'B' and not answer.is_correct %} (Your answer) {% endif %}
+                        {% if answer.question.correct_answer == 'B' %} ✅ Correct Answer {% endif %}
+                    </label>
+                    <label class="{% if answer.selected_option == 'C' %}{% if answer.is_correct %}correct{% else %}incorrect{% endif %}{% endif %}">
+                        C) {{ answer.question.option3 }}
+                        {% if answer.selected_option == 'C' and not answer.is_correct %} (Your answer) {% endif %}
+                        {% if answer.question.correct_answer == 'C' %} ✅ Correct Answer {% endif %}
+                    </label>
+                    <label class="{% if answer.selected_option == 'D' %}{% if answer.is_correct %}correct{% else %}incorrect{% endif %}{% endif %}">
+                        D) {{ answer.question.option4 }}
+                        {% if answer.selected_option == 'D' and not answer.is_correct %} (Your answer) {% endif %}
+                        {% if answer.question.correct_answer == 'D' %} ✅ Correct Answer {% endif %}
+                    </label>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="actions">
+            <a href="{% url 'quiz_selection' %}" class="btn-primary">Take Another Quiz</a>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Background */
+.results-wrapper {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #dc2626, #7f1d1d);
+    padding: 40px 15px;
+}
+
+/* Card */
+.results-container {
+    max-width: 900px;
+    width: 100%;
+    background: #fff;
+    border-radius: 15px;
+    box-shadow: 0 15px 15px rgba(0,0,0,0.25);
+    padding: 30px;
+    text-align: center;
+}
+
+/* Logo */
+.results-logo img {
+    width: 100px;
+    height: auto;
+    margin-bottom: 15px;
+}
+
+/* Titles */
+.results-title {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #b91c1c;
+    margin-bottom: 25px;
+}
+
+/* Score */
+.score-card {
+    margin-bottom: 30px;
+    padding: 20px;
+    border-radius: 12px;
+    background: #fef2f2;
+    border: 1px solid #dc2626;
+}
+.score-percentage {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #dc2626;
+}
+.score-details {
+    font-size: 1rem;
+    color: #444;
+}
+
+/* Questions */
+.questions {
+    margin-top: 20px;
+    text-align: left;
+}
+.question-result {
+    margin-bottom: 20px;
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    background: #f9fafb;
+}
+.question-text {
+    font-weight: 600;
+    margin-bottom: 10px;
+    color: #222;
+}
+.options-result label {
+    display: block;
+    padding: 8px;
+    margin-bottom: 6px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    font-size: 0.95rem;
+    color: #333;
+}
+.options-result label.correct {
+    background-color: #d4edda;
+    border-color: #28a745;
+    color: #155724 !important;
+    font-weight: 600;
+}
+.options-result label.incorrect {
+    background-color: #f8d7da;
+    border-color: #dc3545;
+    color: #721c24 !important;
+    font-weight: 600;
+}
+
+/* Button */
+.actions {
+    margin-top: 25px;
+}
+.btn-primary {
+    display: inline-block;
+    padding: 12px 28px;
+    background-color: #dc2626;
+    color: #fff !important;
+    font-weight: 600;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+.btn-primary:hover {
+    background-color: #b91c1c;
+}
+</style>
+{% endblock %}

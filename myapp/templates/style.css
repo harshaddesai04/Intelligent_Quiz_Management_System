@@ -1,0 +1,123 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Poppins", sans-serif;
+}
+
+body {
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(-45deg, #ff6a00, #ee0979, #2575fc, #6a11cb);
+    background-size: 400% 400%;
+    animation: gradient 12s ease infinite;
+}
+
+@keyframes gradient {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+.form-box {
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(20px);
+    padding: 40px 30px;
+    border-radius: 20px;
+    width: 380px;
+    color: #fff;
+    text-align: center;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    animation: fadeIn 1s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(40px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.form-box h2 {
+    margin-bottom: 20px;
+    font-size: 26px;
+    font-weight: 600;
+    letter-spacing: 1px;
+}
+
+/* Input group */
+.input-group {
+    position: relative;
+    margin-bottom: 25px;
+}
+
+.input-group input {
+    width: 100%;
+    padding: 12px 40px 12px 15px;
+    border: none;
+    border-radius: 8px;
+    outline: none;
+    font-size: 15px;
+    color: #333;
+    background: rgba(255, 255, 255, 0.9);
+}
+
+.input-group label {
+    position: absolute;
+    left: 15px;
+    top: 12px;
+    color: #666;
+    font-size: 14px;
+    pointer-events: none;
+    transition: 0.3s ease all;
+}
+
+.input-group input:focus + label,
+.input-group input:not(:placeholder-shown) + label {
+    top: -10px;
+    left: 12px;
+    font-size: 12px;
+    background: #fff;
+    padding: 0 5px;
+    border-radius: 4px;
+    color: #2575fc;
+}
+
+.input-group i {
+    position: absolute;
+    right: 15px;
+    top: 14px;
+    color: #2575fc;
+    font-size: 16px;
+}
+
+/* Button */
+.form-box button {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    background: linear-gradient(45deg, #ff6a00, #ee0979);
+    color: #fff;
+    transition: 0.3s ease;
+}
+
+.form-box button:hover {
+    background: linear-gradient(45deg, #2575fc, #6a11cb);
+}
+
+/* Redirect */
+.redirect {
+    margin-top: 15px;
+    font-size: 14px;
+    color: #f0f0f0;
+}
+
+.redirect a {
+    color: #fff;
+    text-decoration: underline;
+    font-weight: 500;
+}

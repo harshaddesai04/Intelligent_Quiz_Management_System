@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Profile - QuizGen</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #7f1d1d 0%, #b91c1c 50%, #dc2626 100%);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        .floating-element {
+            animation: float 6s ease-in-out infinite;
+            position: absolute;
+            pointer-events: none;
+            border-radius: 50%;
+        }
+        .floating-element:nth-child(2) { animation-delay: -2s; }
+        .floating-element:nth-child(3) { animation-delay: -4s; }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(180deg); }
+        }
+        
+        .container {
+            max-width: 480px;
+            margin: 60px auto;
+            background: #fff;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+            padding: 40px;
+            position: relative;
+            z-index: 10;
+        }
+        
+        h2 {
+            text-align: center;
+            color: #dc2626;
+            margin-bottom: 32px;
+            font-size: 2.2rem;
+            font-weight: 700;
+        }
+        
+        .avatar-preview {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 32px;
+        }
+        
+        .avatar-preview img {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid #dc2626;
+            box-shadow: 0 8px 20px rgba(220, 38, 38, 0.25);
+            background: #fef2f2;
+        }
+        
+        .form-group {
+            margin-bottom: 24px;
+        }
+        
+        label {
+            display: block;
+            font-weight: 600;
+            color: #7f1d1d;
+            margin-bottom: 8px;
+        }
+        
+        input[type="text"], input[type="password"], input[type="file"] {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid #fee2e2;
+            border-radius: 12px;
+            font-size: 1rem;
+            background: #fef2f2;
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+        }
+        
+        input[type="text"]:focus, input[type="password"]:focus {
+            border-color: #dc2626;
+            outline: none;
+            background: #ffffff;
+            box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15);
+        }
+        
+        input[readonly] {
+            background: #f3f4f6 !important;
+            color: #6b7280 !important;
+            cursor: not-allowed !important;
+        }
+        
+        .clear-avatar-btn {
+            margin-top: 8px;
+            padding: 8px 16px;
+            background: #dc2626;
+            border: none;
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+        
+        .clear-avatar-btn:hover {
+            background: #b91c1c;
+        }
+        
+        .password-toggle {
+            background: #fef2f2;
+            border: 2px solid #dc2626;
+            color: #dc2626;
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .password-toggle:hover {
+            background: #dc2626;
+            color: #fff;
+        }
+
+        .password-fields {
+            display: none;
+        }
+        
+        .password-fields.active {
+            display: block;
+        }
+        
+        button[type="submit"] {
+            background: linear-gradient(135deg, #7f1d1d, #dc2626);
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            padding: 16px 0;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 16px;
+            box-shadow: 0 8px 20px rgba(220, 38, 38, 0.3);
+            transition: all 0.3s ease;
+        }
+        
+        button[type="submit"]:hover {
+            background: linear-gradient(135deg, #b91c1c, #7f1d1d);
+            transform: translateY(-2px);
+            box-shadow: 0 12px 25px rgba(220, 38, 38, 0.4);
+        }
+        
+        .back-btn {
+            display: block;
+            text-align: center;
+            margin-top: 24px;
+            color: #dc2626;
+            text-decoration: none;
+            font-weight: 600;
+            padding: 12px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .back-btn:hover {
+            color: #7f1d1d;
+            background: #fef2f2;
+        }
+    </style>
+</head>
+<body>
+    <!-- Floating elements for red theme -->
+    <div class="floating-element" style="top: 10%; left: 10%; width: 120px; height: 120px; background: rgba(220,38,38,0.1);"></div>
+    <div class="floating-element" style="top: 25%; right: 15%; width: 80px; height: 80px; background: rgba(185,28,28,0.15);"></div>
+    <div class="floating-element" style="bottom: 20%; left: 20%; width: 100px; height: 100px; background: rgba(127,29,29,0.1);"></div>
+
+    <div class="container">
+        <h2>Edit Profile</h2>
+        
+        <div class="avatar-preview">
+            <img src="https://ui-avatars.com/api/?name={{ user.first_name|default:user.username }}&background=dc2626&color=fff&size=150" alt="Avatar" id="avatarImg">
+        </div>
+        
+        <form method="POST" enctype="multipart/form-data" action="{% url 'edit_profile' %}">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label for="display_name">Display Name</label>
+                <input type="text" name="display_name" id="display_name" value="{{ user.first_name|default:user.username }}" placeholder="Enter your display name">
+            </div>
+            
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" name="username" id="username" value="{{ user.username }}" readonly>
+            </div>
+            
+            <div class="form-group">
+                <label for="avatar">Change Avatar</label>
+                <input type="file" name="avatar" id="avatar" accept="image/*" onchange="previewAvatar(this)">
+                <button type="button" class="clear-avatar-btn" onclick="clearAvatar()">Clear Avatar</button>
+            </div>
+            
+            <button type="button" class="password-toggle" onclick="togglePasswordSection()">
+                Change Password
+            </button>
+            
+            <div class="password-fields" id="passwordFields">
+                <input type="hidden" name="change_password" value="true" id="changePasswordFlag" disabled>
+                
+                <div class="form-group">
+                    <label for="old_password">Current Password</label>
+                    <input type="password" name="old_password" id="old_password">
+                </div>
+                
+                <div class="form-group">
+                    <label for="new_password1">New Password</label>
+                    <input type="password" name="new_password1" id="new_password1">
+                </div>
+                
+                <div class="form-group">
+                    <label for="new_password2">Confirm New Password</label>
+                    <input type="password" name="new_password2" id="new_password2">
+                </div>
+            </div>
+            
+            <button type="submit">Save Changes</button>
+        </form>
+        
+        <a href="{% url 'profile' %}" class="back-btn">Back to Profile</a>
+    </div>
+
+    <script>
+        function previewAvatar(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('avatarImg').src = e.target.result;
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+        
+        function clearAvatar() {
+            document.getElementById('avatar').value = '';
+            document.getElementById('avatarImg').src = 'https://ui-avatars.com/api/?name=User&background=dc2626&color=fff&size=150';
+        }
+
+        function togglePasswordSection() {
+            const passwordFields = document.getElementById('passwordFields');
+            const toggleBtn = document.querySelector('.password-toggle');
+            const changePasswordFlag = document.getElementById('changePasswordFlag');
+            
+            if (passwordFields.classList.contains('active')) {
+                passwordFields.classList.remove('active');
+                toggleBtn.textContent = 'Change Password';
+                changePasswordFlag.disabled = true;
+            } else {
+                passwordFields.classList.add('active');
+                toggleBtn.textContent = 'Cancel Password Change';
+                changePasswordFlag.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>

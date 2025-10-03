@@ -1,0 +1,185 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="quiz-container">
+    <div class="quiz-header">
+        <h2>{{ quiz.title }}</h2>
+        <p>{{ quiz.description }}</p>
+        <div class="quiz-info">
+            <!-- <div class="time-limit">Time Limit: {{ quiz.time_limit_minutes }} minutes</div> -->
+            <div class="difficulty">Difficulty: {{ quiz.get_difficulty_display }}</div>
+        </div>
+    </div>
+
+    <div class="progress-bar">
+        <div class="progress" id="progress"></div>
+    </div>
+
+    <div class="question-number">
+        Question <span id="current-question">1</span> of <span id="total-questions">{{ questions|length }}</span>
+    </div>
+
+    <div id="timer">Time remaining: <span id="time-display"></span></div>
+
+    <div id="question-container">
+        {% for question in questions %}
+        <div class="question-panel" data-index="{{ forloop.counter0 }}" id="question-{{ forloop.counter0 }}" {% if not forloop.first %}style="display: none;"{% endif %}>
+            <div class="question">
+                <h4>Question {{ forloop.counter }}</h4>
+                <p class="question-text">{{ question.text }}</p>
+                <div class="options">
+                    <label>
+                        <input type="radio" name="question-{{ question.id }}" value="A">
+                        A) {{ question.option1 }}
+                    </label>
+                    <label>
+                        <input type="radio" name="question-{{ question.id }}" value="B">
+                        B) {{ question.option2 }}
+                    </label>
+                    <label>
+                        <input type="radio" name="question-{{ question.id }}" value="C">
+                        C) {{ question.option3 }}
+                    </label>
+                    <label>
+                        <input type="radio" name="question-{{ question.id }}" value="D">
+                        D) {{ question.option4 }}
+                    </label>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="navigation">
+        <button type="button" id="prevBtn" disabled>Previous</button>
+        <button type="button" id="nextBtn">Next</button>
+        <button type="button" id="submitBtn" style="display:none;">Submit Quiz</button>
+    </div>
+
+    <form id="quiz-form" method="post" action="{% url 'submit_quiz' %}" style="display:none;">
+        {% csrf_token %}
+        <input type="hidden" name="quiz_history_id" id="form-quiz-history-id" value="{{ quiz_history_id }}">
+        <input type="hidden" name="answers" id="form-answers">
+        <input type="hidden" name="time_taken" id="form-time-taken">
+    </form>
+</div>
+
+<style>
+/* Quiz container and text all black */
+.quiz-container { max-width: 800px; margin: 20px auto; padding:20px; background:white; border-radius:15px; box-shadow:0 10px 30px rgba(0,0,0,0.3); color: black;}
+.quiz-header { background:#dc2626; color:white; padding:20px; text-align:center; border-radius:10px; margin-bottom:20px;}
+.quiz-info { display:flex; justify-content:space-between; margin-top:10px; font-size:16px; color:rgb(240, 234, 234);}
+#timer { background:#dc2626; color:white; padding:8px 15px; border-radius:20px; font-weight:bold; text-align:center; margin:15px 0; display:inline-block;}
+#question-container { background:#f8f9fa; padding:15px; border-radius:10px; min-height:200px; margin:20px 0;}
+.question h4 { color:black; margin-bottom:10px; font-size:18px;}
+.question-text { color:black; font-size:16px;}
+.options label { display:block; color:black; padding:8px 0; cursor:pointer;}
+.option.selected { background:#3498db; color:white; }
+.navigation { display:flex; justify-content:space-between; margin-top:20px;}
+button { padding:10px 20px; border:none; border-radius:8px; cursor:pointer; font-weight:bold; transition:all 0.3s;}
+button:disabled { opacity:0.5; cursor:not-allowed;}
+#prevBtn { background:#dc2626; color:white;}
+#nextBtn { background:#dc2626; color:white;}
+#submitBtn { background:#dc2626; color:white;}
+.progress-bar { height:8px; background:#ecf0f1; border-radius:4px; margin-bottom:20px; overflow:hidden;}
+.progress { height:100%; background:#dc2626; width:0%; transition:width 0.3s;}
+</style>
+
+<script>
+var totalQuestions = {{ questions|length }};  
+
+// Always 1 min per question
+var timeLimit = totalQuestions * 60;  
+
+var quizHistoryId = {{ quiz_history_id|default:"0" }};
+var current = 0;
+var answers = {};
+var timeRemaining = timeLimit;
+var timer;
+
+var prevBtn = document.getElementById('prevBtn');
+var nextBtn = document.getElementById('nextBtn');
+var submitBtn = document.getElementById('submitBtn');
+var progress = document.getElementById('progress');
+var currentQuestionSpan = document.getElementById('current-question');
+var totalQuestionsSpan = document.getElementById('total-questions');
+var timeDisplay = document.getElementById('time-display');
+
+var quizForm = document.getElementById('quiz-form');
+var formQuizHistoryId = document.getElementById('form-quiz-history-id');
+var formAnswers = document.getElementById('form-answers');
+var formTimeTaken = document.getElementById('form-time-taken');
+
+function updateTimeDisplay() {
+    var minutes = Math.floor(timeRemaining / 60);
+    var seconds = timeRemaining % 60;
+    timeDisplay.textContent = minutes + ":" + (seconds < 10 ? "0" : "") + seconds;
+}
+
+function startTimer() {
+    updateTimeDisplay();
+    timer = setInterval(function(){
+        timeRemaining--;
+        updateTimeDisplay();
+        if(timeRemaining <= 0){
+            clearInterval(timer);
+            submitQuiz();
+        }
+    }, 1000);
+}
+
+function showQuestion(index){
+    if(index < 0 || index >= totalQuestions) return;
+
+    document.querySelectorAll('.question-panel').forEach(function(panel){
+        panel.style.display = 'none';
+    });
+
+    var currentPanel = document.querySelector('.question-panel[data-index="'+index+'"]');
+    if(currentPanel) currentPanel.style.display = 'block';
+
+    currentQuestionSpan.textContent = index + 1;
+    totalQuestionsSpan.textContent = totalQuestions;
+
+    progress.style.width = ((index + 1) / totalQuestions) * 100 + '%';
+
+    prevBtn.disabled = index === 0;
+    nextBtn.style.display = index === totalQuestions - 1 ? 'none':'inline-block';
+    submitBtn.style.display = index === totalQuestions - 1 ? 'inline-block':'none';
+
+    current = index;
+}
+
+function saveAnswer(){
+    var currentPanel = document.querySelector('.question-panel[data-index="'+current+'"]');
+    if(!currentPanel) return;
+
+    var selectedRadio = currentPanel.querySelector('input[type="radio"]:checked');
+    if(selectedRadio){
+        var questionId = selectedRadio.name.replace('question-','');
+        answers[questionId] = { 'selected_option': selectedRadio.value };
+    }
+}
+
+function nextQuestion(){ saveAnswer(); showQuestion(current + 1); }
+function prevQuestion(){ saveAnswer(); showQuestion(current - 1); }
+
+function submitQuiz(){
+    saveAnswer();
+    clearInterval(timer);
+    formQuizHistoryId.value = quizHistoryId;
+    formAnswers.value = JSON.stringify(answers);
+    formTimeTaken.value = timeLimit - timeRemaining;
+    quizForm.submit();
+}
+
+document.addEventListener("DOMContentLoaded", function(){
+    showQuestion(0);
+    startTimer();
+    prevBtn.addEventListener("click", prevQuestion);
+    nextBtn.addEventListener("click", nextQuestion);
+    submitBtn.addEventListener("click", submitQuiz);
+});
+</script>
+
+
+{% endblock %}

@@ -1,0 +1,232 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<script src="https://cdn.tailwindcss.com"></script>
+<div class="min-h-screen flex items-center justify-center bg-red-700 py-10 px-4">
+    <div class="w-full max-w-2xl bg-white rounded-2xl shadow-xl p-10">
+        <!-- Title -->
+        <h2 class="text-3xl font-bold text-center text-red-700 mb-10">Create New Quiz</h2>
+        
+        <!-- Quiz Form -->
+        <div class="space-y-6">
+            <!-- Category -->
+            <div>
+                <label for="categorySelect" class="block text-gray-800 font-semibold mb-2">Category</label>
+                <select id="categorySelect" class="form-control">
+                    <option value="">Select Category</option>
+                    {% for category in categories %}
+                    <option value="{{ category.id }}">{{ category.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Subcategory -->
+            <div>
+                <label for="subcategorySelect" class="block text-gray-800 font-semibold mb-2">Subcategory</label>
+                <select id="subcategorySelect" class="form-control" disabled>
+                    <option value="">Select Subcategory</option>
+                </select>
+            </div>
+
+            <!-- Difficulty -->
+            <div>
+                <label for="difficultySelect" class="block text-gray-800 font-semibold mb-2">Difficulty</label>
+                <select id="difficultySelect" class="form-control">
+                    <option value="E">Easy</option>
+                    <option value="M" selected>Medium</option>
+                    <option value="H">Hard</option>
+                </select>
+            </div>
+
+            <!-- Number of Questions -->
+            <div>
+                <label for="numQuestions" class="block text-gray-800 font-semibold mb-2">Number of Questions</label>
+                <input type="number" id="numQuestions" class="form-control" value="10" min="5" max="20">
+            </div>
+
+            <!-- Generate Button -->
+            <button class="btn-primary w-full mt-6" onclick="generateQuiz()">Generate Quiz</button>
+        </div>
+
+        <!-- Loading Section -->
+        <div id="loading" class="loading hidden">
+            <div class="spinner"></div>
+            <p class="text-gray-700 mt-2">Generating quiz questions using AI... Please wait.</p>
+        </div>
+
+        <!-- Result Section -->
+        <div id="result" class="result-message mt-6"></div>
+    </div>
+</div>
+
+<!-- Custom Styles -->
+<style>
+.form-control {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 15px;
+    color: #374151;
+    transition: all 0.3s;
+}
+.form-control:focus {
+    outline: none;
+    border-color: #dc2626;
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.2);
+}
+.btn-primary {
+    background: #dc2626;
+    color: #ffffff;
+    padding: 12px;
+    font-weight: 700;
+    border-radius: 8px;
+    transition: all 0.3s;
+    text-align: center;
+    display: inline-block;
+}
+.btn-primary:hover {
+    background: #b91c1c;
+}
+.loading {
+    text-align: center;
+    margin-top: 20px;
+}
+.spinner {
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #dc2626;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 10px;
+}
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+.result-message {
+    padding: 16px;
+    border-radius: 8px;
+    text-align: center;
+    font-size: 15px;
+}
+.result-message.success {
+    background: #d1fae5;
+    color: #065f46;
+    border: 1px solid #10b981;
+}
+.result-message.error {
+    background: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #f87171;
+}
+</style>
+
+<!-- Script -->
+<script>
+// Load subcategories when category is selected
+document.getElementById('categorySelect').addEventListener('change', function() {
+    const categoryId = this.value;
+    const subcategorySelect = document.getElementById('subcategorySelect');
+    
+    if (categoryId) {
+        subcategorySelect.innerHTML = '<option value="">Loading subcategories...</option>';
+        subcategorySelect.disabled = true;
+        
+        fetch(`/api/get-subcategories/${categoryId}/`)
+            .then(response => response.json())
+            .then(subcategories => {
+                subcategorySelect.innerHTML = '<option value="">Select Subcategory</option>';
+                subcategories.forEach(subcat => {
+                    subcategorySelect.innerHTML += `<option value="${subcat.id}">${subcat.name}</option>`;
+                });
+                subcategorySelect.disabled = false;
+            })
+            .catch(error => {
+                subcategorySelect.innerHTML = '<option value="">Error loading subcategories</option>';
+                console.error('Error:', error);
+            });
+    } else {
+        subcategorySelect.innerHTML = '<option value="">Select Subcategory</option>';
+        subcategorySelect.disabled = true;
+    }
+});
+
+// Generate quiz function
+function generateQuiz() {
+    const categoryId = document.getElementById('categorySelect').value;
+    const subcategoryId = document.getElementById('subcategorySelect').value;
+    const difficulty = document.getElementById('difficultySelect').value;
+    const numQuestions = document.getElementById('numQuestions').value;
+
+    if (!categoryId || !subcategoryId) {
+        alert('Please select both category and subcategory');
+        return;
+    }
+
+    document.getElementById('loading').classList.remove('hidden');
+    document.getElementById('result').innerHTML = '';
+    document.getElementById('result').className = 'result-message';
+
+    fetch('/api/generate-quiz/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify({
+            category_id: parseInt(categoryId),
+            subcategory_id: parseInt(subcategoryId),
+            difficulty: difficulty,
+            num_questions: parseInt(numQuestions)
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        document.getElementById('loading').classList.add('hidden');
+        
+        if (data.success) {
+            document.getElementById('result').className = 'result-message success';
+            document.getElementById('result').innerHTML = `
+                <h3 class="text-lg font-semibold">Quiz Generated Successfully!</h3>
+                <p class="mt-1">${data.message}</p>
+                <a href="/quiz/take/${data.quiz_id}/" class="btn-primary mt-3 inline-block">Start Quiz Now</a>
+            `;
+        } else {
+            document.getElementById('result').className = 'result-message error';
+            document.getElementById('result').innerHTML = `
+                <h3 class="text-lg font-semibold">Error</h3>
+                <p class="mt-1">${data.error || 'Failed to generate quiz. Please try again.'}</p>
+            `;
+        }
+    })
+    .catch(error => {
+        document.getElementById('loading').classList.add('hidden');
+        document.getElementById('result').className = 'result-message error';
+        document.getElementById('result').innerHTML = `
+            <h3 class="text-lg font-semibold">Network Error</h3>
+            <p class="mt-1">Please check your connection and try again.</p>
+        `;
+        console.error('Error:', error);
+    });
+}
+
+// Helper function to get CSRF token
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+{% endblock %}

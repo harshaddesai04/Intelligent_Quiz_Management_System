@@ -1,0 +1,345 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="history-wrapper">
+    <div class="container history-container">
+        <!-- Logo -->
+        <div class="history-logo">
+            <img src="/media/avatars/logo.png" alt="QuizGen Logo">
+        </div>
+
+        <h2 class="history-title">Your Quiz History</h2>
+
+        <table class="history-table">
+            <thead>
+                <tr>
+                    <th>Quiz</th>
+                    <th>Score</th>
+                    <th>Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for history in quiz_histories %}
+                <tr>
+                    <td>{{ history.quiz.title }}</td>
+                    <td><span class="score-badge">{{ history.score|floatformat:1 }}%</span></td>
+                    <td>{{ history.created_at|date:"M d, Y" }}</td>
+                    <td>
+                        <a href="/quiz/results/{{ history.id }}/" class="btn-primary-sm">View Results</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="empty-text">No quiz history found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Chatbot -->
+<!-- Chatbot Widget -->
+<div id="chatbot-container">
+    <!-- Floating Bot Icon -->
+    <div id="chatbot-icon">
+        <img src="/media/avatars/robot.jpg" alt="ChatBot">
+    </div>
+
+    <!-- Chat Window -->
+    <div id="chatbot-window">
+        <div class="chatbot-header">
+            <span>🤖 QuizGen Bot</span>
+            <button id="chatbot-close">✖</button>
+        </div>
+        <div class="chatbot-body">
+            <p>👋 Hi! I'm your Quiz Assistant. How can I help you?</p>
+        </div>
+        <div class="chatbot-footer">
+            <input type="text" placeholder="Type a message...">
+            <button>Send</button>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Background wrapper */
+.history-wrapper {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #dc2626, #7f1d1d);
+    padding: 40px 15px;
+}
+
+/* Card container */
+.history-container {
+    max-width: 1000px;
+    width: 100%;
+    background: #fff;
+    border-radius: 15px;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.25);
+    padding: 30px;
+    text-align: center;
+}
+
+/* Logo */
+.history-logo img {
+    width: 100px;
+    margin-bottom: 15px;
+}
+
+/* Title */
+.history-title {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #b91c1c;
+    margin-bottom: 25px;
+}
+
+/* Table */
+.history-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+}
+.history-table thead {
+    background: #dc2626;
+    color: #fff;
+}
+.history-table th, 
+.history-table td {
+    padding: 14px;
+    text-align: center;
+    border: 1px solid #ddd;
+    font-size: 0.95rem;
+}
+.history-table tbody tr:nth-child(even) {
+    background: #f9fafb;
+}
+.history-table tbody tr:hover {
+    background: #fee2e2;
+}
+
+/* Score badge */
+.score-badge {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 20px;
+    background: #fef2f2;
+    color: #dc2626;
+    font-weight: 600;
+}
+
+/* Empty text */
+.empty-text {
+    text-align: center;
+    color: #555;
+    font-style: italic;
+}
+
+/* Button small */
+.btn-primary-sm {
+    display: inline-block;
+    padding: 8px 16px;
+    background-color: #dc2626;
+    color: #fff !important;
+    font-weight: 600;
+    border-radius: 6px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+.btn-primary-sm:hover {
+    background-color: #b91c1c;
+}
+
+/* Container */
+#chatbot-container {
+    position: fixed;
+    bottom: 20px;
+    right: 20px; /* Changed to bottom-right */
+    z-index: 9999;
+}
+
+/* Bot Icon */
+#chatbot-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: #dc2626;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    animation: bounce 1.5s infinite;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    overflow: hidden; /* Ensures circular clipping of image */
+}
+#chatbot-icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Makes image circular and cover the container */
+    border-radius: 50%; /* Ensures image is circular */
+}
+
+/* Bounce Animation */
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-12px); }
+}
+
+/* Chat Window */
+#chatbot-window {
+    display: none;
+    width: 320px;
+    height: 400px;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    position: absolute;
+    bottom: 80px;
+    right: 0; /* Changed to align with bottom-right position */
+    overflow: hidden;
+    flex-direction: column;
+}
+
+/* Header */
+.chatbot-header {
+    background: #dc2626;
+    color: #fff;
+    padding: 10px;
+    font-weight: bold;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.chatbot-header button {
+    background: transparent;
+    border: none;
+    color: #fff;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+/* Body */
+.chatbot-body {
+    flex: 1;
+    padding: 10px;
+    font-size: 0.95rem;
+    overflow-y: auto;
+}
+
+/* Footer */
+.chatbot-footer {
+    display: flex;
+    border-top: 1px solid #ddd;
+}
+.chatbot-footer input {
+    flex: 1;
+    padding: 8px;
+    border: none;
+    outline: none;
+}
+.chatbot-footer button {
+    background: #dc2626;
+    color: #fff;
+    border: none;
+    padding: 8px 12px;
+    cursor: pointer;
+}
+.chatbot-footer button:hover {
+    background: #b91c1c;
+}
+</style>
+
+<script>
+const chatbotBtn = document.getElementById("chatbotBtn");
+const chatContainer = document.getElementById("chatContainer");
+const closeChat = document.getElementById("closeChat");
+const sendBtn = document.getElementById("sendBtn");
+const chatInput = document.getElementById("chatInput");
+const chatMessages = document.getElementById("chatMessages");
+
+// Toggle open/close
+chatbotBtn.addEventListener("click", () => {
+    chatContainer.classList.toggle("open");
+});
+closeChat.addEventListener("click", () => {
+    chatContainer.classList.remove("open");
+});
+
+// Send message
+function sendMessage() {
+    const msg = chatInput.value.trim();
+    if (!msg) return;
+
+    // User message
+    const userDiv = document.createElement("div");
+    userDiv.className = "bg-gray-100 text-gray-800 p-2 rounded-lg max-w-[75%] ml-auto";
+    userDiv.innerText = msg;
+    chatMessages.appendChild(userDiv);
+    chatInput.value = "";
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+
+    // Backend fetch
+    fetch("/chatbot-response/", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": getCookie("csrftoken")
+        },
+        body: JSON.stringify({ message: msg })
+    })
+    .then(res => res.json())
+    .then(data => {
+        const botDiv = document.createElement("div");
+        botDiv.className = "bg-red-100 text-red-800 p-2 rounded-lg max-w-[75%]";
+        botDiv.innerText = "🤖 " + (data.reply || "Sorry, I couldn’t respond.");
+        chatMessages.appendChild(botDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    })
+    .catch(err => {
+        const botDiv = document.createElement("div");
+        botDiv.className = "bg-red-100 text-red-800 p-2 rounded-lg max-w-[75%]";
+        botDiv.innerText = "⚠️ Error: " + err.message;
+        chatMessages.appendChild(botDiv);
+    });
+}
+
+sendBtn.addEventListener("click", sendMessage);
+chatInput.addEventListener("keypress", e => {
+    if (e.key === "Enter") sendMessage();
+});
+
+// CSRF helper
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== "") {
+        const cookies = document.cookie.split(";");
+        for (let cookie of cookies) {
+            cookie = cookie.trim();
+            if (cookie.startsWith(name + "=")) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script><script>
+// Toggle Chat
+document.getElementById("chatbot-icon").onclick = function() {
+    document.getElementById("chatbot-window").style.display = "flex";
+    this.style.display = "none";
+};
+document.getElementById("chatbot-close").onclick = function() {
+    document.getElementById("chatbot-window").style.display = "none";
+    document.getElementById("chatbot-icon").style.display = "flex";
+};
+</script>
+
+
+{% endblock %}

@@ -1,0 +1,269 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="profile-wrapper">
+    <div class="profile-container">
+        <h2 class="profile-title">Edit Profile</h2>
+
+        <!-- Avatar Preview -->
+        <div class="avatar-preview">
+            <img src="{{ avatar_url }}" alt="Avatar">
+        </div>
+
+        <!-- Profile Form -->
+        <form method="POST" enctype="multipart/form-data" id="profileForm" action="{% url 'edit_profile' %}">
+            {% csrf_token %}
+            
+            <!-- Display Name -->
+            <div class="form-group">
+                <label for="id_display_name">Display Name</label>
+                {{ form.display_name }}
+            </div>
+
+            <!-- Username (Read Only) -->
+            <div class="form-group">
+                <label for="id_username">Username</label>
+                <input type="text" 
+                       name="username" 
+                       value="{{ request.user.username }}" 
+                       readonly disabled 
+                       class="readonly-input">
+            </div>
+
+            <!-- Avatar Upload -->
+            <div class="form-group">
+                <label for="id_avatar">Change Avatar</label>
+                {{ form.avatar }}
+            </div>
+
+            <!-- Password Section -->
+            <div class="password-section">
+                <button type="button" class="password-toggle" onclick="togglePasswordSection()">
+                    Change Password
+                </button>
+                <div class="password-fields" id="passwordFields">
+                    <input type="hidden" name="change_password" value="true" id="changePasswordFlag" disabled>
+                    
+                    <div class="form-group">
+                        <label for="old_password">Current Password</label>
+                        <input type="password" name="old_password" id="old_password">
+                        <div class="error-message" id="currentPasswordError">Please enter your current password</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="new_password1">New Password</label>
+                        <input type="password" name="new_password1" id="new_password1">
+                        <div class="error-message" id="newPasswordError">Password must be at least 8 characters</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="new_password2">Confirm New Password</label>
+                        <input type="password" name="new_password2" id="new_password2">
+                        <div class="error-message" id="confirmPasswordError">Passwords do not match</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Save Changes -->
+            <button type="submit" class="btn-primary">Save Changes</button>
+        </form>
+
+        <!-- Back to Profile -->
+        <a href="{% url 'profile' %}" class="back-btn">Back to Profile</a>
+    </div>
+</div>
+
+<style>
+/* Wrapper */
+.profile-wrapper {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #dc2626, #b91c1c, #7f1d1d);
+    padding: 40px 15px;
+}
+
+/* Container */
+.profile-container {
+    max-width: 480px;
+    width: 100%;
+    background: #fff;
+    border-radius: 20px;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.25);
+    padding: 30px;
+    text-align: center;
+}
+
+/* Title */
+.profile-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #b91c1c;
+    margin-bottom: 25px;
+}
+
+/* Avatar */
+.avatar-preview img {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    border: 4px solid #dc2626;
+    box-shadow: 0 8px 20px rgba(220, 38, 38, 0.2);
+    margin-bottom: 20px;
+    object-fit: cover;
+}
+
+/* Form */
+.form-group {
+    text-align: left;
+    margin-bottom: 20px;
+}
+label {
+    font-weight: 600;
+    color: #7f1d1d;
+    margin-bottom: 8px;
+    display: block;
+}
+input[type="text"], 
+input[type="password"], 
+input[type="file"], 
+textarea {
+    width: 100%;
+    padding: 14px 16px;
+    border: 2px solid #fee2e2;
+    border-radius: 12px;
+    background: #fff5f5;
+    transition: all 0.3s ease;
+}
+input:focus, textarea:focus {
+    border-color: #dc2626;
+    outline: none;
+    background: #ffffff;
+    box-shadow: 0 0 0 3px rgba(220,38,38,0.1);
+}
+
+/* Read-only input */
+.readonly-input {
+    background: #f3f4f6;
+    color: #6b7280;
+    cursor: not-allowed;
+}
+
+/* Password Section */
+.password-section {
+    border-top: 2px solid #fee2e2;
+    padding-top: 20px;
+    margin-top: 20px;
+}
+.password-toggle {
+    background: #fff5f5;
+    border: 2px solid #dc2626;
+    color: #dc2626;
+    padding: 12px 20px;
+    border-radius: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+.password-toggle:hover {
+    background: #dc2626;
+    color: #fff;
+}
+.password-fields {
+    display: none;
+    margin-top: 20px;
+}
+.password-fields.active {
+    display: block;
+}
+
+/* Errors */
+.error-message {
+    color: #dc2626;
+    font-size: 0.875rem;
+    margin-top: 4px;
+    display: none;
+}
+
+/* Buttons */
+.btn-primary {
+    display: block;
+    width: 100%;
+    background: linear-gradient(135deg, #dc2626, #7f1d1d);
+    color: #fff;
+    padding: 14px;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    margin-top: 15px;
+    transition: all 0.3s ease;
+}
+.btn-primary:hover {
+    background: linear-gradient(135deg, #b91c1c, #7f1d1d);
+    transform: translateY(-2px);
+}
+
+/* Back Button */
+.back-btn {
+    display: block;
+    text-align: center;
+    margin-top: 20px;
+    color: #dc2626;
+    text-decoration: none;
+    font-weight: 600;
+}
+.back-btn:hover {
+    color: #7f1d1d;
+}
+</style>
+
+<script>
+function togglePasswordSection() {
+    const passwordFields = document.getElementById('passwordFields');
+    const toggleBtn = document.querySelector('.password-toggle');
+    const changePasswordFlag = document.getElementById('changePasswordFlag');
+    
+    if (passwordFields.classList.contains('active')) {
+        passwordFields.classList.remove('active');
+        toggleBtn.textContent = 'Change Password';
+        changePasswordFlag.disabled = true;
+        document.getElementById('old_password').value = '';
+        document.getElementById('new_password1').value = '';
+        document.getElementById('new_password2').value = '';
+    } else {
+        passwordFields.classList.add('active');
+        toggleBtn.textContent = 'Cancel Password Change';
+        changePasswordFlag.disabled = false;
+    }
+}
+
+document.getElementById('profileForm').addEventListener('submit', function(e) {
+    const passwordFields = document.getElementById('passwordFields');
+    
+    if (passwordFields.classList.contains('active')) {
+        const currentPassword = document.getElementById('old_password').value;
+        const newPassword = document.getElementById('new_password1').value;
+        const confirmPassword = document.getElementById('new_password2').value;
+        
+        let hasError = false;
+        document.querySelectorAll('.error-message').forEach(msg => msg.style.display = 'none');
+        
+        if (!currentPassword) {
+            document.getElementById('currentPasswordError').style.display = 'block';
+            hasError = true;
+        }
+        if (newPassword.length < 8) {
+            document.getElementById('newPasswordError').style.display = 'block';
+            hasError = true;
+        }
+        if (newPassword !== confirmPassword) {
+            document.getElementById('confirmPasswordError').style.display = 'block';
+            hasError = true;
+        }
+        if (hasError) {
+            e.preventDefault();
+        }
+    }
+});
+</script>
+{% endblock %}

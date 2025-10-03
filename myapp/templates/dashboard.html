@@ -1,0 +1,361 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard | QuizGen</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        :root {
+            --primary: #dc2626;
+            --primary-dark: #b91c1c;
+            --primary-darker: #7f1d1d;
+            --bg-dark: #b91c1c;
+            --bg-light: #fff;
+            --text-light: #dc2626;
+            --text-muted: #040405;
+        }
+
+        body {
+            font-family: 'Inter', Arial, sans-serif;
+            background: var(--bg-dark);
+            margin: 0;
+            color: var(--text-light);
+            line-height: 1.6;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 28px;
+            max-width: 1100px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+        .card {
+            background: var(--bg-light);
+            border-radius: 16px;
+            padding: 28px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+        }
+
+        /* Profile Card */
+        .profile-card {
+            text-align: center;
+        }
+        .profile-card img {
+            width: 110px;
+            height: 110px;
+            border-radius: 50%;
+            border: 3px solid var(--primary);
+            margin-bottom: 16px;
+            background: #fff;
+        }
+        .profile-card h2 {
+            margin: 0;
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+        .profile-card p {
+            margin: 6px 0;
+            font-size: 1.05rem;
+            color: var(--text-muted);
+        }
+        .profile-card .profile-meta {
+            margin-top: 10px;
+            font-size: 0.95rem;
+            color: var(--text-muted);
+        }
+        .quiz-actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+            justify-content: center;
+        }
+        .quiz-btn {
+            padding: 12px 22px;
+            background: var(--primary);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: background 0.25s;
+        }
+        .quiz-btn:hover {
+            background: var(--primary-dark);
+        }
+
+        .stats-card h3,
+        .topics-card h3,
+        .performance-card h3 {
+            margin-top: 0;
+            margin-bottom: 16px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        @media (max-width: 900px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="dashboard">
+        <!-- Profile Card -->
+        <div class="card profile-card">
+            <img src="{% if request.user.profile.avatar %}{{ request.user.profile.avatar.url }}{% else %}/static/default-avatar.jpeg{% endif %}" alt="avatar">
+            <h2>{{ request.user.profile.display_name|default:request.user.username }}</h2>
+            <p>@{{ request.user.username }}</p>
+            <div class="profile-meta">
+                <div>Email: {{ request.user.email }}</div>
+            </div>
+            <div class="quiz-actions">
+                <a href="{% url 'quiz_selection' %}" class="quiz-btn">Create New Quiz</a>
+                <a href="{% url 'quiz_history' %}" class="quiz-btn">View History</a>
+            </div>
+        </div>
+
+        <!-- Stats Card -->
+        <div class="card stats-card">
+            <h3>Performance Stats</h3>
+            <div class="grid grid-cols-2 gap-4 text-center">
+                <div class="bg-red-100 p-4 rounded-lg">
+                    <p class="text-lg font-bold text-red-700">{{ quizzes_taken|default:"11" }}</p>
+                    <p class="text-sm text-gray-600">Quizzes Attempted</p>
+                </div>
+                <div class="bg-green-100 p-4 rounded-lg">
+                    <p class="text-lg font-bold text-green-700">{{ easy_quizzes|default:"5" }}</p>
+                    <p class="text-sm text-gray-600">Easy</p>
+                </div>
+                <div class="bg-yellow-100 p-4 rounded-lg">
+                    <p class="text-lg font-bold text-yellow-700">{{ medium_quizzes|default:"5" }}</p>
+                    <p class="text-sm text-gray-600">Medium</p>
+                </div>
+                <div class="bg-purple-100 p-4 rounded-lg">
+                    <p class="text-lg font-bold text-purple-700">{{ hard_quizzes|default:"1" }}</p>
+                    <p class="text-sm text-gray-600">Hard</p>
+                </div>
+            </div>
+
+            <div class="mt-6 grid grid-cols-2 gap-4 text-center">
+                <div class="bg-blue-100 p-4 rounded-lg">
+                    <p class="text-lg font-bold text-blue-700">{{ streak|default:"0" }}</p>
+                    <p class="text-sm text-gray-600">Max Streak</p>
+                </div>
+                <div class="bg-pink-100 p-4 rounded-lg">
+                    <p class="text-lg font-bold text-pink-700">{{ active_days|default:"0" }}</p>
+                    <p class="text-sm text-gray-600">Active Days</p>
+                </div>
+            </div>
+
+            <!-- Contribution Calendar -->
+            <div class="mt-6">
+                <p class="text-sm font-semibold text-red-700 mb-2">Activity (Last 12 Months)</p>
+                <div class="grid grid-cols-53 gap-1 text-center text-[8px]">
+                    {% for week in activity_data %}
+                        <div class="flex flex-col gap-1">
+                            {% for day in week %}
+                                <div class="w-3 h-3 rounded-sm {% if day == 0 %}bg-gray-200{% elif day == 1 %}bg-green-200{% elif day == 2 %}bg-green-400{% elif day == 3 %}bg-green-600{% else %}bg-green-800{% endif %}"></div>
+                            {% endfor %}
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Topics Card -->
+        <div class="card topics-card">
+            <h3>Favourite Topics & Achievements</h3>
+
+            <!-- Favourite Topics -->
+            <div class="flex flex-wrap gap-3 mb-6">
+                {% for topic in favourite_topics %}
+                    <span class="px-4 py-2 bg-red-100 text-red-700 rounded-full text-sm font-semibold shadow-sm hover:bg-red-200 transition">
+                        🔖 {{ topic }}
+                    </span>
+                {% empty %}
+                    <span class="px-4 py-2 bg-gray-200 text-gray-600 rounded-full text-sm font-semibold">DSA</span>
+                    <span class="px-4 py-2 bg-gray-200 text-gray-600 rounded-full text-sm font-semibold">Coding</span>
+                    <span class="px-4 py-2 bg-gray-200 text-gray-600 rounded-full text-sm font-semibold">DBMS</span>
+                    <span class="px-4 py-2 bg-gray-200 text-gray-600 rounded-full text-sm font-semibold">Computer Networks</span>
+                    <span class="px-4 py-2 bg-gray-200 text-gray-600 rounded-full text-sm font-semibold">General Knowledge</span>
+                {% endfor %}
+            </div>
+
+            <!-- Earned Badges -->
+            <h4 class="text-md font-semibold text-red-700 mb-3">🏆 Earned Badges</h4>
+            <div class="grid grid-cols-2 gap-4">
+                {% if quizzes_taken|default:10 >= 10 %}
+                    <div class="p-4 bg-yellow-100 rounded-lg text-center shadow-sm">
+                        <p class="text-2xl">🥇</p>
+                        <p class="font-bold text-yellow-700">Rookie</p>
+                        <p class="text-xs text-gray-600">10 Quizzes Completed</p>
+                    </div>
+                {% endif %}
+
+                {% if quizzes_taken|default:0 >= 50 %}
+                    <div class="p-4 bg-green-100 rounded-lg text-center shadow-sm">
+                        <p class="text-2xl">🥈</p>
+                        <p class="font-bold text-green-700">Pro Solver</p>
+                        <p class="text-xs text-gray-600">50 Quizzes Completed</p>
+                    </div>
+                {% endif %}
+
+                {% if streak|default:0 >= 7 %}
+                    <div class="p-4 bg-blue-100 rounded-lg text-center shadow-sm">
+                        <p class="text-2xl">🔥</p>
+                        <p class="font-bold text-blue-700">7-Day Streak</p>
+                        <p class="text-xs text-gray-600">Keep the momentum!</p>
+                    </div>
+                {% endif %}
+
+                {% if streak|default:0 >= 30 %}
+                    <div class="p-4 bg-purple-100 rounded-lg text-center shadow-sm">
+                        <p class="text-2xl">⚡</p>
+                        <p class="font-bold text-purple-700">One-Month Grind</p>
+                        <p class="text-xs text-gray-600">30-Day Streak</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Performance Chart -->
+        <div class="card performance-card">
+            <h3>Performance Overview</h3>
+            <canvas id="performanceChart" width="400" height="300"></canvas>
+        </div>
+    </div>
+
+    <!-- Chatbot -->
+    <div id="chatbot" class="fixed bottom-6 right-6 z-50">
+        <button id="chatbotBtn" class="bg-white text-red-600 p-7 rounded-full shadow-lg transition animate-bounce text-4xl">🤖</button>
+        <div id="chatContainer" class="hidden fixed bottom-24 right-6 w-[400px] h-[500px] bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-red-300">
+            <div class="bg-red-600 text-white px-4 py-3 flex justify-between items-center">
+                <span class="font-semibold">QuizGen Bot</span>
+                <button id="closeChat" class="text-white hover:text-gray-200 text-xl">&times;</button>
+            </div>
+            <div id="chatMessages" class="flex-1 p-4 overflow-y-auto text-sm space-y-3 bg-gray-50">
+                <div class="bg-red-100 text-red-800 p-2 rounded-lg max-w-[75%]">👋 Hi! I’m your Quiz Assistant. How can I help you?</div>
+            </div>
+            <div class="border-t border-gray-200 flex items-center p-3 bg-white">
+                <input id="chatInput" type="text" placeholder="Type a message..." class="flex-1 px-3 py-2 text-sm rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-red-400">
+                <button id="sendBtn" class="ml-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-semibold">Send</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const correctAnswers = {{ correct_answers|default:50 }};
+        const wrongAnswers = {{ wrong_answers|default:30 }};
+        const skipped = {{ skipped|default:20 }};
+
+        const ctx = document.getElementById('performanceChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: ['Correct', 'Wrong', 'Skipped'],
+                datasets: [{
+                    data: [correctAnswers, wrongAnswers, skipped],
+                    backgroundColor: ['#16a34a', '#dc2626', '#facc15'],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'bottom' },
+                    tooltip: { enabled: true }
+                }
+            }
+        });
+    </script>
+
+    <script>
+    const chatbotBtn = document.getElementById("chatbotBtn");
+    const chatContainer = document.getElementById("chatContainer");
+    const closeChat = document.getElementById("closeChat");
+    const sendBtn = document.getElementById("sendBtn");
+    const chatInput = document.getElementById("chatInput");
+    const chatMessages = document.getElementById("chatMessages");
+
+    chatbotBtn.addEventListener("click", () => {
+        chatContainer.classList.toggle("hidden");
+    });
+    closeChat.addEventListener("click", () => {
+        chatContainer.classList.add("hidden");
+    });
+
+    function sendMessage() {
+        const msg = chatInput.value.trim();
+        if (!msg) return;
+        const userDiv = document.createElement("div");
+        userDiv.className = "bg-gray-100 text-gray-800 p-2 rounded-lg max-w-[75%] ml-auto";
+        userDiv.innerText = msg;
+        chatMessages.appendChild(userDiv);
+        chatInput.value = "";
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+
+        fetch("/chatbot-response/", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": getCookie("csrftoken")
+            },
+            body: JSON.stringify({ message: msg })
+        })
+        .then(res => res.json())
+        .then(data => {
+            const botDiv = document.createElement("div");
+            botDiv.className = "bg-red-100 text-red-800 p-2 rounded-lg max-w-[75%]";
+            botDiv.innerText = "🤖 " + (data.reply || "Sorry, I couldn’t respond.");
+            chatMessages.appendChild(botDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        })
+        .catch(err => {
+            const botDiv = document.createElement("div");
+            botDiv.className = "bg-red-100 text-red-800 p-2 rounded-lg max-w-[75%]";
+            botDiv.innerText = "⚠️ Error: " + err.message;
+            chatMessages.appendChild(botDiv);
+        });
+    }
+
+    sendBtn.addEventListener("click", sendMessage);
+    chatInput.addEventListener("keypress", e => {
+        if (e.key === "Enter") sendMessage();
+    });
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== "") {
+            const cookies = document.cookie.split(";");
+            for (let cookie of cookies) {
+                cookie = cookie.trim();
+                if (cookie.startsWith(name + "=")) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    </script>
+
+</body>
+</html>
+{% endblock %}
