@@ -6,7 +6,7 @@ This project leverages the power of **Django, AI chatbot integration, and web te
 
 Here are the wireframes/snapshots of the project:
 
-![Wireframe Slider](assets/wireframes.gif)
+![Wireframe Slider](assets/wireframe.gif)
 
 ---
 
